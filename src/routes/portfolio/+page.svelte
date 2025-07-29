@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import {onMount} from "svelte";
 
 	let mounted = false;
 
@@ -26,14 +26,16 @@
 			<div class="about-content">
 				<div class="about-text">
 					<p>
-						Welcome to my digital workspace! I'm a passionate developer who loves creating 
-						innovative solutions and beautiful user experiences. My journey in tech has taken 
-						me through various domains, from web development to system architecture.
+						Welcome to my digital workspace! I'm a passionate developer who
+						loves creating innovative solutions and beautiful user experiences.
+						My journey in tech has taken me through various domains, from web
+						development to system architecture.
 					</p>
 					<p>
-						I specialize in modern web technologies, with expertise in JavaScript/TypeScript, 
-						React, Svelte, Node.js, and cloud platforms. I believe in writing clean, 
-						maintainable code and creating intuitive user interfaces.
+						I specialize in modern web technologies, with expertise in
+						JavaScript/TypeScript, React, Svelte, Node.js, and cloud platforms.
+						I believe in writing clean, maintainable code and creating intuitive
+						user interfaces.
 					</p>
 				</div>
 				<div class="skills">
@@ -63,7 +65,10 @@
 					</div>
 					<div class="project-content">
 						<h3>Project Alpha</h3>
-						<p>A modern web application built with SvelteKit and TypeScript, featuring real-time collaboration and advanced data visualization.</p>
+						<p>
+							A modern web application built with SvelteKit and TypeScript,
+							featuring real-time collaboration and advanced data visualization.
+						</p>
 						<div class="project-tech">
 							<span class="tech-tag">SvelteKit</span>
 							<span class="tech-tag">TypeScript</span>
@@ -78,7 +83,10 @@
 					</div>
 					<div class="project-content">
 						<h3>Lightning API</h3>
-						<p>High-performance REST API with microservices architecture, handling millions of requests per day with 99.9% uptime.</p>
+						<p>
+							High-performance REST API with microservices architecture,
+							handling millions of requests per day with 99.9% uptime.
+						</p>
 						<div class="project-tech">
 							<span class="tech-tag">Node.js</span>
 							<span class="tech-tag">Docker</span>
@@ -93,7 +101,10 @@
 					</div>
 					<div class="project-content">
 						<h3>Design System</h3>
-						<p>Comprehensive design system and component library used across multiple products, ensuring consistency and accessibility.</p>
+						<p>
+							Comprehensive design system and component library used across
+							multiple products, ensuring consistency and accessibility.
+						</p>
 						<div class="project-tech">
 							<span class="tech-tag">React</span>
 							<span class="tech-tag">Storybook</span>
@@ -114,11 +125,21 @@
 					<span class="icon">📧</span>
 					Email
 				</a>
-				<a href="https://github.com/foglomon" class="contact-link" target="_blank" rel="noopener">
+				<a
+					href="https://github.com/foglomon"
+					class="contact-link"
+					target="_blank"
+					rel="noopener"
+				>
 					<span class="icon">💻</span>
 					GitHub
 				</a>
-				<a href="https://linkedin.com/in/foglomon" class="contact-link" target="_blank" rel="noopener">
+				<a
+					href="https://linkedin.com/in/foglomon"
+					class="contact-link"
+					target="_blank"
+					rel="noopener"
+				>
 					<span class="icon">💼</span>
 					LinkedIn
 				</a>
@@ -135,18 +156,18 @@
 </div>
 
 <style>
-	:global(body) {
+	.portfolio-container {
 		margin: 0;
 		padding: 0;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+			Ubuntu, Cantarell, sans-serif;
 		line-height: 1.6;
 		color: #333;
-	}
-
-	.portfolio-container {
 		opacity: 0;
 		transform: translateY(20px);
 		transition: all 0.8s ease;
+		min-height: 100vh;
+		overflow-x: hidden;
 	}
 
 	.portfolio-container.mounted {
@@ -203,6 +224,10 @@
 		font-weight: 500;
 		transition: all 0.3s ease;
 		display: inline-block;
+		font-family: inherit;
+		border: none;
+		cursor: pointer;
+		user-select: none;
 	}
 
 	.btn.primary {
@@ -295,7 +320,9 @@
 		border-radius: 12px;
 		overflow: hidden;
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		transition:
+			transform 0.3s ease,
+			box-shadow 0.3s ease;
 	}
 
 	.project-card:hover {
@@ -379,6 +406,8 @@
 		text-decoration: none;
 		border-radius: 6px;
 		transition: all 0.3s ease;
+		font-family: inherit;
+		user-select: none;
 	}
 
 	.contact-link:hover {
@@ -409,6 +438,8 @@
 		color: #667eea;
 		text-decoration: none;
 		transition: color 0.3s ease;
+		font-family: inherit;
+		user-select: none;
 	}
 
 	.back-link:hover {
@@ -443,5 +474,19 @@
 			flex-direction: column;
 			text-align: center;
 		}
+	}
+
+	/* Ensure smooth scrolling and prevent layout issues */
+	html {
+		scroll-behavior: smooth;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	/* Prevent font loading issues */
+	.portfolio-container * {
+		font-family: inherit;
 	}
 </style>
