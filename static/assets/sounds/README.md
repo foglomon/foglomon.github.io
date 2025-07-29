@@ -2,9 +2,9 @@
 
 Please replace these placeholder files with your actual mechanical keyboard sound files:
 
-- mech1.mp3 - First mechanical key sound
-- mech2.mp3 - Second mechanical key sound
-- mech3.mp3 - Third mechanical key sound
+- mech1.m4a - First mechanical key sound
+- mech2.m4a - Second mechanical key sound
+- mech3.m4a - Third mechanical key sound
 
 The application will randomly play one of these three sounds when a key is pressed.
 

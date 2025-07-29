@@ -89,9 +89,9 @@
 		// Load sound files
 		try {
 			const soundFiles = [
-				"/assets/sounds/mech1.mp3",
-				"/assets/sounds/mech2.mp3",
-				"/assets/sounds/mech3.mp3",
+				"/assets/sounds/mech1.m4a",
+				"/assets/sounds/mech2.m4a",
+				"/assets/sounds/mech3.m4a",
 			];
 			audioBuffers = await Promise.all(soundFiles.map(loadAudio));
 		} catch (error) {
@@ -152,6 +152,9 @@
 		if (key === "enter") {
 			if (displayText.toLowerCase() === "foglomon") {
 				goto("/portfolio");
+			} else if (displayText.toLowerCase() === "github") {
+				window.open("https://github.com/foglomon", "_blank");
+				displayText = "";
 			} else {
 				displayText = "";
 			}
@@ -203,6 +206,9 @@
 		if (key === "enter") {
 			if (displayText.toLowerCase() === "foglomon") {
 				goto("/portfolio");
+			} else if (displayText.toLowerCase() === "github") {
+				window.open("https://github.com/foglomon", "_blank");
+				displayText = "";
 			} else {
 				displayText = "";
 			}
@@ -230,7 +236,7 @@
 			<div class="eink-display">
 				<div class="display-content">
 					{#if displayText.length === 0}
-						<div class="prompt">Type "foglomon" and press Enter...</div>
+						<div class="prompt">Type "foglomon" and press Enter</div>
 					{:else}
 						<div class="typed-text">{displayText}</div>
 					{/if}
