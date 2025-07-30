@@ -6,6 +6,8 @@
 	let pressedKeys = new Set<string>();
 	let audioContext: AudioContext;
 	let audioBuffers: AudioBuffer[] = [];
+	let showNotification = false;
+	let notificationMessage = "";
 
 	// Full 60% Keyboard layout - QWERTY with proper key widths
 	const keyboardLayout = [
@@ -81,6 +83,48 @@
 		],
 	];
 
+	// Define handled keywords - add new keywords here
+	const handledKeywords: Record<string, () => void> = {
+		foglomon: () => goto("/portfolio"),
+		github: () => {
+			window.open("https://github.com/foglomon", "_self");
+			displayText = "";
+		},
+		help: () => {
+			showNotificationPopup("Try: 'foglomon', 'github'.");
+			displayText = "";
+		},
+	};
+
+	function showNotificationPopup(message: string) {
+		// Limit message length to prevent overflow
+		const maxLength = 60;
+		notificationMessage =
+			message.length > maxLength
+				? message.substring(0, maxLength) + "..."
+				: message;
+		showNotification = true;
+
+		// Hide notification after 3 seconds
+		setTimeout(() => {
+			showNotification = false;
+		}, 3000);
+	}
+
+	function handleEnterAction() {
+		const inputText = displayText.toLowerCase().trim();
+
+		if (handledKeywords[inputText]) {
+			handledKeywords[inputText]();
+		} else if (inputText.length > 0) {
+			// Show notification for unhandled keywords
+			showNotificationPopup(`"${displayText}" is not a recognized command.`);
+			displayText = "";
+		} else {
+			displayText = "";
+		}
+	}
+
 	onMount(async () => {
 		// Initialize Web Audio API
 		audioContext = new (window.AudioContext ||
@@ -150,14 +194,7 @@
 
 		// Handle display text
 		if (key === "enter") {
-			if (displayText.toLowerCase() === "foglomon") {
-				goto("/portfolio");
-			} else if (displayText.toLowerCase() === "github") {
-				window.open("https://github.com/foglomon", "_blank");
-				displayText = "";
-			} else {
-				displayText = "";
-			}
+			handleEnterAction();
 		} else if (key === "backspace") {
 			displayText = displayText.slice(0, -1);
 		} else if (key === " ") {
@@ -204,14 +241,7 @@
 
 		// Handle display text
 		if (key === "enter") {
-			if (displayText.toLowerCase() === "foglomon") {
-				goto("/portfolio");
-			} else if (displayText.toLowerCase() === "github") {
-				window.open("https://github.com/foglomon", "_blank");
-				displayText = "";
-			} else {
-				displayText = "";
-			}
+			handleEnterAction();
 		} else if (key === "backspace") {
 			displayText = displayText.slice(0, -1);
 		} else if (key === " ") {
@@ -236,12 +266,25 @@
 			<div class="eink-display">
 				<div class="display-content">
 					{#if displayText.length === 0}
-						<div class="prompt">Type "foglomon" and press Enter</div>
+						<div class="prompt-container">
+							<div class="prompt">Type "foglomon" and press Enter</div>
+							<div class="prompt">Use "Help" for more info.</div>
+						</div>
 					{:else}
 						<div class="typed-text">{displayText}</div>
 					{/if}
 				</div>
 			</div>
+
+			<!-- Notification Popup -->
+			{#if showNotification}
+				<div class="notification-popup" class:show={showNotification}>
+					<div class="notification-content">
+						<div class="notification-icon">⚠️</div>
+						<div class="notification-message">{notificationMessage}</div>
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<div class="keyboard-container">
@@ -357,6 +400,15 @@
 		align-items: center;
 		justify-content: center;
 		box-sizing: border-box;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.prompt-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
 	}
 
 	.prompt {
@@ -371,8 +423,12 @@
 		font-size: 24px;
 		font-weight: bold;
 		text-align: center;
-		word-break: break-all;
+		word-wrap: break-word;
+		word-break: break-word;
+		hyphens: auto;
 		position: relative;
+		max-width: 100%;
+		line-height: 1.3;
 	}
 
 	.typed-text::after {
@@ -499,6 +555,25 @@
 		transform: translateY(1px);
 	}
 
+	/* Add custom scrollbar styling for webkit browsers */
+	.display-content::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.display-content::-webkit-scrollbar-track {
+		background: rgba(0, 0, 0, 0.1);
+		border-radius: 3px;
+	}
+
+	.display-content::-webkit-scrollbar-thumb {
+		background: rgba(0, 0, 0, 0.3);
+		border-radius: 3px;
+	}
+
+	.display-content::-webkit-scrollbar-thumb:hover {
+		background: rgba(0, 0, 0, 0.5);
+	}
+
 	/* Mobile responsive adjustments */
 	@media (max-width: 768px) {
 		.keyboard {
@@ -530,6 +605,101 @@
 
 		.table {
 			gap: 40px;
+		}
+
+		.notification-popup {
+			width: 90%;
+			max-width: 320px;
+		}
+
+		.notification-content {
+			padding: 12px 16px;
+		}
+
+		.notification-message {
+			font-size: 12px;
+		}
+	}
+
+	/* Notification Popup Styles */
+	.notification-popup {
+		position: absolute;
+		top: -80px;
+		left: 50%;
+		transform: translateX(-50%) translateY(-20px);
+		background: rgba(255, 69, 58, 0.95);
+		border: 2px solid #ff453a;
+		border-radius: 12px;
+		box-shadow:
+			0 10px 30px rgba(255, 69, 58, 0.3),
+			0 4px 15px rgba(0, 0, 0, 0.2);
+		z-index: 100;
+		opacity: 0;
+		animation: slideInDown 0.3s ease-out forwards;
+		backdrop-filter: blur(10px);
+		max-width: 400px;
+		width: 100%;
+	}
+
+	.notification-popup.show {
+		animation: slideInDown 0.3s ease-out forwards;
+	}
+
+	.notification-content {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 16px 20px;
+		color: white;
+	}
+
+	.notification-icon {
+		font-size: 20px;
+		flex-shrink: 0;
+	}
+
+	.notification-message {
+		font-size: 14px;
+		font-weight: 500;
+		line-height: 1.4;
+		text-align: left;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		max-width: 300px;
+	}
+
+	@keyframes slideInDown {
+		0% {
+			opacity: 0;
+			transform: translateX(-50%) translateY(-40px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+	}
+
+	/* Add a subtle pulse effect for extra attention */
+	.notification-popup::before {
+		content: "";
+		position: absolute;
+		top: -2px;
+		left: -2px;
+		right: -2px;
+		bottom: -2px;
+		background: linear-gradient(45deg, #ff453a, #ff6b5a, #ff453a);
+		border-radius: 14px;
+		z-index: -1;
+		animation: pulse-border 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse-border {
+		0%,
+		100% {
+			opacity: 0.8;
+		}
+		50% {
+			opacity: 1;
 		}
 	}
 </style>
