@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {onMount} from "svelte";
+	import {onMount, onDestroy} from "svelte";
 	import {goto} from "$app/navigation";
 
 	let displayText = "";
@@ -8,6 +8,25 @@
 	let audioBuffers: AudioBuffer[] = [];
 	let showNotification = false;
 	let notificationMessage = "";
+
+	// Typing speed tracking
+	let typingStartTime: number | null = null;
+	let charactersTyped = 0;
+	let currentWPM = 0;
+	let showWPM = false;
+	let highSpeedStartTime: number | null = null;
+	let isShaking = false;
+	let confettiElements: Array<{
+		id: number;
+		x: number;
+		y: number;
+		text: string;
+		color: string;
+		animationType: number;
+	}> = [];
+	let confettiId = 0;
+	let typingTimer: number | null = null;
+	let lastTypingTime: number | null = null;
 
 	// Full 60% Keyboard layout - QWERTY with proper key widths
 	const keyboardLayout = [
@@ -83,6 +102,25 @@
 		],
 	];
 
+	// Motivational quotes for high-speed typing
+	const speedQuotes = [
+		"Lightning fast!",
+		"Speed demon!",
+		"Blazing fingers!",
+		"Type warrior!",
+		"Keyboard master!",
+		"Velocity champion!",
+		"Rapid fire!",
+		"Turbo mode!",
+		"Flying fingers!",
+		"Speed king/queen!",
+		"Warp speed!",
+		"Sonic typing!",
+		"Hyperspeed!",
+		"Velocity virtuoso!",
+		"Rapid response!",
+	];
+
 	// Define handled keywords - add new keywords here
 	const handledKeywords: Record<string, () => void> = {
 		foglomon: () => goto("/portfolio"),
@@ -91,14 +129,55 @@
 			displayText = "";
 		},
 		help: () => {
-			showNotificationPopup("Try: 'foglomon', 'github'.");
+			showNotificationPopup(
+				"Try: 'foglomon', 'github', 'sudo get-job', 'whoami','quote'."
+			);
+			displayText = "";
+			setTimeout(() => {
+				showNotificationPopup("Psst. These are not all!");
+			}, 3000);
+		},
+		"sudo get-job": () => {
+			showNotificationPopup("Searching for job opportunities... 💼");
+			setTimeout(() => {
+				showNotificationPopup("No jobs found. Keep trying! 🥹");
+			}, 5000);
+			displayText = "";
+		},
+		bbqr: () => {
+			window.open("https://github.com/foglomon/bbqr", "_self");
+			displayText = "";
+		},
+		// Fun easter eggs
+		whoami: () => {
+			showNotificationPopup("I don't know about you, but I am Ishman!");
+			displayText = "";
+		},
+		"hello world": () => {
+			showNotificationPopup("Hello, World! 🌍 Classic first program executed.");
+			displayText = "";
+		},
+		"sudo rm -rf /": () => {
+			showNotificationPopup("⚠️ Nice try! That's not happening here. 😄");
+			displayText = "";
+		},
+		quote: () => {
+			const quotes = [
+				"💡 'Code never lies, comments sometimes do.' - Ron Jeffries",
+				"🐛 'Debugging is twice as hard as writing code.' - Brian Kernighan",
+				"✨ 'Simplicity is the ultimate sophistication.' - Leonardo da Vinci",
+				"🚀 'Make it work, make it right, make it fast.' - Kent Beck",
+				"🎯 'Premature optimization is the root of all evil.' - Donald Knuth",
+			];
+			const randomquote = quotes[Math.floor(Math.random() * quotes.length)];
+			showNotificationPopup(randomquote);
 			displayText = "";
 		},
 	};
 
 	function showNotificationPopup(message: string) {
 		// Limit message length to prevent overflow
-		const maxLength = 60;
+		const maxLength = 80;
 		notificationMessage =
 			message.length > maxLength
 				? message.substring(0, maxLength) + "..."
@@ -109,6 +188,155 @@
 		setTimeout(() => {
 			showNotification = false;
 		}, 3000);
+	}
+
+	function calculateWPM() {
+		if (!typingStartTime || charactersTyped === 0) return 0;
+
+		const currentTime = Date.now();
+		const timeElapsed = (currentTime - typingStartTime) / 1000 / 60; // Convert to minutes
+		const wordsTyped = charactersTyped / 5; // Standard: 5 characters = 1 word
+
+		return Math.round(wordsTyped / timeElapsed);
+	}
+
+	function updateTypingSpeed() {
+		currentWPM = calculateWPM();
+
+		// Only show WPM and effects after 3 seconds of typing
+		const currentTime = Date.now();
+		const hasTypedFor3Seconds =
+			typingStartTime && currentTime - typingStartTime >= 3000;
+
+		showWPM = !!hasTypedFor3Seconds && currentWPM > 40;
+		lastTypingTime = currentTime;
+
+		// Check for high-speed effects (only after 3 seconds)
+		if (hasTypedFor3Seconds && currentWPM >= 40) {
+			triggerConfetti();
+		}
+
+		// Check for extreme speed (100+ WPM)
+		if (currentWPM >= 100) {
+			if (!highSpeedStartTime) {
+				highSpeedStartTime = Date.now();
+			} else if (Date.now() - highSpeedStartTime >= 5000) {
+				// 5 seconds
+				if (!isShaking) {
+					isShaking = true;
+				}
+			}
+		} else {
+			highSpeedStartTime = null;
+			isShaking = false;
+		}
+
+		// Clear existing timer
+		if (typingTimer) {
+			clearTimeout(typingTimer);
+		}
+
+		// Set timer to reset WPM and shaking after 3 seconds of no typing
+		typingTimer = setTimeout(() => {
+			if (lastTypingTime && Date.now() - lastTypingTime >= 3000) {
+				resetTypingStats();
+			}
+		}, 3000);
+	}
+
+	function triggerConfetti() {
+		// Don't spam confetti - limit to every 500ms
+		if (confettiElements.length > 8) return;
+
+		const quote = speedQuotes[Math.floor(Math.random() * speedQuotes.length)];
+		const colors = [
+			"#ff6b5a",
+			"#4fc3f7",
+			"#66bb6a",
+			"#ffb74d",
+			"#ba68c8",
+			"#ff8a65",
+		];
+		const color = colors[Math.floor(Math.random() * colors.length)];
+
+		// Position around keyboard area instead of screen edges
+		let x: number, y: number;
+
+		if (typeof window !== "undefined") {
+			// Calculate approximate keyboard position (centered in viewport)
+			const keyboardWidth = Math.min(1400 * 0.85, window.innerWidth * 0.8); // Approximate keyboard width
+			const keyboardHeight = 300; // Approximate keyboard height
+			const centerX = window.innerWidth / 2;
+			const centerY = window.innerHeight / 2 + 100; // Keyboard is slightly below center
+
+			// Create a larger area around the keyboard for message positioning
+			const padding = 200; // Distance from keyboard edges
+			const areaLeft = centerX - keyboardWidth / 2 - padding;
+			const areaRight = centerX + keyboardWidth / 2 + padding;
+			const areaTop = centerY - keyboardHeight / 2 - padding;
+			const areaBottom = centerY + keyboardHeight / 2 + padding;
+
+			// Random position around the keyboard perimeter
+			const side = Math.floor(Math.random() * 4); // 0: left, 1: right, 2: top, 3: bottom
+
+			switch (side) {
+				case 0: // Left side of keyboard area
+					x = areaLeft;
+					y = areaTop + Math.random() * (areaBottom - areaTop);
+					break;
+				case 1: // Right side of keyboard area
+					x = areaRight;
+					y = areaTop + Math.random() * (areaBottom - areaTop);
+					break;
+				case 2: // Top of keyboard area
+					x = areaLeft + Math.random() * (areaRight - areaLeft);
+					y = areaTop;
+					break;
+				case 3: // Bottom of keyboard area
+					x = areaLeft + Math.random() * (areaRight - areaLeft);
+					y = areaBottom;
+					break;
+				default:
+					x = areaLeft;
+					y = centerY;
+			}
+		} else {
+			// Fallback for SSR
+			x = Math.random() > 0.5 ? 300 : 700;
+			y = Math.random() * 200 + 400;
+		}
+
+		const confettiItem = {
+			id: confettiId++,
+			x,
+			y,
+			text: quote,
+			color,
+			animationType: Math.floor(Math.random() * 3), // 0, 1, or 2 for different animation patterns
+		};
+
+		confettiElements = [...confettiElements, confettiItem];
+
+		// Remove confetti after animation
+		setTimeout(() => {
+			confettiElements = confettiElements.filter(
+				(item) => item.id !== confettiItem.id
+			);
+		}, 3000);
+	}
+
+	function resetTypingStats() {
+		typingStartTime = null;
+		charactersTyped = 0;
+		currentWPM = 0;
+		showWPM = false;
+		highSpeedStartTime = null;
+		isShaking = false;
+		lastTypingTime = null;
+		if (typingTimer) {
+			clearTimeout(typingTimer);
+			typingTimer = null;
+		}
 	}
 
 	function handleEnterAction() {
@@ -123,6 +351,9 @@
 		} else {
 			displayText = "";
 		}
+
+		// Reset typing stats when command is executed
+		resetTypingStats();
 	}
 
 	onMount(async () => {
@@ -140,6 +371,13 @@
 			audioBuffers = await Promise.all(soundFiles.map(loadAudio));
 		} catch (error) {
 			console.warn("Could not load audio files:", error);
+		}
+	});
+
+	onDestroy(() => {
+		// Clean up any active timers
+		if (typingTimer) {
+			clearTimeout(typingTimer);
 		}
 	});
 
@@ -197,10 +435,19 @@
 			handleEnterAction();
 		} else if (key === "backspace") {
 			displayText = displayText.slice(0, -1);
+			if (displayText.length === 0) {
+				resetTypingStats();
+			}
 		} else if (key === " ") {
 			displayText += " ";
+			charactersTyped++;
+			if (!typingStartTime) typingStartTime = Date.now();
+			updateTypingSpeed();
 		} else if (key.length === 1 && /^[a-z0-9`\-=\[\];',./\\]$/i.test(key)) {
 			displayText += key;
+			charactersTyped++;
+			if (!typingStartTime) typingStartTime = Date.now();
+			updateTypingSpeed();
 		}
 	}
 
@@ -244,10 +491,19 @@
 			handleEnterAction();
 		} else if (key === "backspace") {
 			displayText = displayText.slice(0, -1);
+			if (displayText.length === 0) {
+				resetTypingStats();
+			}
 		} else if (key === " ") {
 			displayText += " ";
+			charactersTyped++;
+			if (!typingStartTime) typingStartTime = Date.now();
+			updateTypingSpeed();
 		} else if (key.length === 1 && /^[a-z0-9`\-=\[\];',./\\]$/i.test(key)) {
 			displayText += key;
+			charactersTyped++;
+			if (!typingStartTime) typingStartTime = Date.now();
+			updateTypingSpeed();
 		}
 
 		// Remove visual feedback after a short delay
@@ -260,9 +516,32 @@
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
-<div class="scene">
+<div class="scene" class:shaking={isShaking}>
+	<!-- Confetti Elements -->
+	{#each confettiElements as confetti (confetti.id)}
+		<div
+			class="confetti confetti-animation-{confetti.animationType}"
+			style="
+				left: {confetti.x}px; 
+				top: {confetti.y}px; 
+				color: {confetti.color};
+				--start-x: {confetti.x}px;
+				--start-y: {confetti.y}px;
+			"
+		>
+			{confetti.text}
+		</div>
+	{/each}
+
 	<div class="table">
 		<div class="display-container">
+			<!-- WPM Display -->
+			{#if showWPM}
+				<div class="wpm-display">
+					{currentWPM} WPM
+				</div>
+			{/if}
+
 			<div class="eink-display">
 				<div class="display-content">
 					{#if displayText.length === 0}
@@ -350,6 +629,161 @@
 		);
 		pointer-events: none;
 		z-index: 1;
+	}
+
+	.scene.shaking {
+		animation: screenShake 0.5s infinite;
+	}
+
+	@keyframes screenShake {
+		0%,
+		100% {
+			transform: translate(0);
+		}
+		10% {
+			transform: translate(-2px, -1px);
+		}
+		20% {
+			transform: translate(2px, 1px);
+		}
+		30% {
+			transform: translate(-1px, 2px);
+		}
+		40% {
+			transform: translate(1px, -2px);
+		}
+		50% {
+			transform: translate(-2px, 1px);
+		}
+		60% {
+			transform: translate(2px, -1px);
+		}
+		70% {
+			transform: translate(-1px, -2px);
+		}
+		80% {
+			transform: translate(1px, 2px);
+		}
+		90% {
+			transform: translate(-2px, -1px);
+		}
+	}
+
+	.wpm-display {
+		position: absolute;
+		top: -30px;
+		right: 0;
+		color: white;
+		background: rgba(0, 0, 0, 0.7);
+		padding: 4px 8px;
+		border-radius: 4px;
+		font-family: "Courier New", monospace;
+		font-weight: bold;
+		font-size: 14px;
+		text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+		z-index: 1001;
+		animation: wpmGlow 2s ease-in-out infinite;
+	}
+
+	@keyframes wpmGlow {
+		0%,
+		100% {
+			text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+		}
+		50% {
+			text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+		}
+	}
+
+	.confetti {
+		position: fixed;
+		font-weight: bold;
+		font-size: 16px;
+		pointer-events: none;
+		z-index: 999;
+		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+		white-space: nowrap;
+	}
+
+	.confetti-animation-0 {
+		animation: confettiFloat0 3s ease-out forwards;
+	}
+
+	.confetti-animation-1 {
+		animation: confettiFloat1 3s ease-out forwards;
+	}
+
+	.confetti-animation-2 {
+		animation: confettiFloat2 3s ease-out forwards;
+	}
+
+	@keyframes confettiFloat0 {
+		0% {
+			opacity: 1;
+			transform: translate(0, 0) scale(0.5) rotate(0deg);
+		}
+		25% {
+			opacity: 1;
+			transform: translate(-30px, -20px) scale(1) rotate(90deg);
+		}
+		50% {
+			opacity: 1;
+			transform: translate(10px, -40px) scale(1.2) rotate(180deg);
+		}
+		75% {
+			opacity: 0.8;
+			transform: translate(40px, -25px) scale(1) rotate(270deg);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(60px, 10px) scale(0.6) rotate(360deg);
+		}
+	}
+
+	@keyframes confettiFloat1 {
+		0% {
+			opacity: 1;
+			transform: translate(0, 0) scale(0.5);
+		}
+		33% {
+			opacity: 1;
+			transform: translate(50px, -30px) scale(1.1);
+		}
+		66% {
+			opacity: 0.9;
+			transform: translate(-20px, -60px) scale(1.2);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(80px, -20px) scale(0.7);
+		}
+	}
+
+	@keyframes confettiFloat2 {
+		0% {
+			opacity: 1;
+			transform: translate(0, 0) scale(0.5) rotate(0deg);
+		}
+		20% {
+			opacity: 1;
+			transform: translate(-40px, 10px) scale(0.9) rotate(-45deg);
+		}
+		40% {
+			opacity: 1;
+			transform: translate(-60px, -30px) scale(1.2) rotate(-90deg);
+		}
+		60% {
+			opacity: 1;
+			transform: translate(-30px, -50px) scale(1.1) rotate(-135deg);
+		}
+		80% {
+			opacity: 0.7;
+			transform: translate(20px, -40px) scale(0.9) rotate(-180deg);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(70px, -10px) scale(0.6) rotate(-225deg);
+		}
 	}
 
 	.table {
@@ -609,14 +1043,25 @@
 
 		.notification-popup {
 			width: 90%;
-			max-width: 320px;
+			min-width: 250px;
+			max-width: 450px;
 		}
 
 		.notification-content {
-			padding: 12px 16px;
+			padding: 10px 16px;
 		}
 
 		.notification-message {
+			font-size: 12px;
+		}
+
+		.wpm-display {
+			top: -25px;
+			right: 0;
+			font-size: 12px;
+		}
+
+		.confetti {
 			font-size: 12px;
 		}
 	}
@@ -637,8 +1082,9 @@
 		opacity: 0;
 		animation: slideInDown 0.3s ease-out forwards;
 		backdrop-filter: blur(10px);
-		max-width: 400px;
-		width: 100%;
+		min-width: 350px;
+		max-width: 1000px;
+		width: auto;
 	}
 
 	.notification-popup.show {
@@ -649,7 +1095,7 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		padding: 16px 20px;
+		padding: 12px 24px;
 		color: white;
 	}
 
@@ -665,7 +1111,8 @@
 		text-align: left;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
-		max-width: 300px;
+		flex: 1;
+		min-width: 0;
 	}
 
 	@keyframes slideInDown {

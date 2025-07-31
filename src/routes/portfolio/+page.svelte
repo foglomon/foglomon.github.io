@@ -1,161 +1,179 @@
 <script lang="ts">
 	import {onMount} from "svelte";
+	import {browser} from "$app/environment";
 
 	let mounted = false;
+	let scrollY = 0;
+	let innerHeight = 0;
 
 	onMount(() => {
 		mounted = true;
+
+		// Animate path drawing and content on scroll
+		const handleScroll = () => {
+			scrollY = window.scrollY;
+
+			// Animate path based on scroll
+			const pathElement = document.querySelector(".journey-path svg path");
+			const markerElement = document.querySelector(".journey-marker");
+			if (pathElement && markerElement) {
+				const scrollPercent = Math.min(
+					scrollY / (document.body.scrollHeight - window.innerHeight),
+					1
+				);
+				const pathLength = (pathElement as SVGPathElement).getTotalLength();
+				(pathElement as SVGPathElement).style.strokeDasharray = `${pathLength}`;
+				(pathElement as SVGPathElement).style.strokeDashoffset =
+					`${pathLength * (1 - scrollPercent)}`;
+
+				// Move the marker along the path
+				const markerPosition = scrollPercent * (window.innerHeight - 20);
+				(markerElement as HTMLElement).style.top = `${markerPosition}px`;
+			} // Fade hero text on scroll
+			const heroContent = document.querySelector(".hero-content");
+			if (heroContent) {
+				const fadeStart = 0;
+				const fadeEnd = window.innerHeight * 0.8;
+				const fadeProgress = Math.min(
+					Math.max((scrollY - fadeStart) / (fadeEnd - fadeStart), 0),
+					1
+				);
+				const opacity = 1 - fadeProgress;
+				const translateY = fadeProgress * 50;
+
+				(heroContent as HTMLElement).style.opacity = opacity.toString();
+				(heroContent as HTMLElement).style.transform =
+					`translateY(${translateY}px)`;
+			}
+
+			// Animate sections based on scroll position with smoother transitions
+			const sections = document.querySelectorAll(".scroll-section");
+			sections.forEach((section, index) => {
+				const rect = section.getBoundingClientRect();
+				const isVisible =
+					rect.top < window.innerHeight * 0.9 &&
+					rect.bottom > window.innerHeight * 0.1;
+
+				if (isVisible) {
+					section.classList.add("visible");
+				}
+			});
+		};
+
+		if (browser) {
+			window.addEventListener("scroll", handleScroll);
+			handleScroll(); // Initial call
+
+			return () => {
+				window.removeEventListener("scroll", handleScroll);
+			};
+		}
 	});
 </script>
 
+<svelte:window bind:scrollY bind:innerHeight />
+
 <div class="portfolio-container" class:mounted>
-	<header class="hero">
+	<!-- The Journey Path SVG -->
+	<div class="journey-path">
+		<svg
+			width="4"
+			height="100%"
+			viewBox="0 0 4 2000"
+			preserveAspectRatio="none"
+		>
+			<path
+				d="M2,0 L2,2000"
+				stroke="#667eea"
+				stroke-width="2"
+				fill="none"
+				stroke-linecap="round"
+			/>
+		</svg>
+		<div class="journey-marker"></div>
+	</div>
+
+	<!-- The Hook (Initial View) -->
+	<section class="hero scroll-section">
 		<div class="hero-content">
-			<h1 class="name">Hi! I'm Ishman</h1>
-			<p class="tagline">A Student, Developer and Keyboard Enthusiast</p>
-			<div class="hero-actions">
-				<a href="#about" class="btn primary">About Me</a>
-				<a href="#projects" class="btn secondary">View Projects</a>
+			<h1 class="hero-title">Hi, I'm Ishman.</h1>
+			<p class="hero-subtitle">I turn ideas into reality through code.</p>
+			<div class="scroll-indicator">
+				<div class="scroll-arrow"></div>
 			</div>
 		</div>
-		<div class="image-disclaimer">Captured from Marvel's Spider-Man 2</div>
-	</header>
+	</section>
 
-	<section id="about" class="about">
+	<!-- Scroll 1: About Me -->
+	<section class="about scroll-section">
 		<div class="container">
-			<h2>About Me</h2>
-			<div class="about-content">
-				<div class="about-text">
-					<p>
-						Well, I'm not Spider-Man (Even though I'd love to be!). That was a
-						capture from on of my many gaming sessions where I play various
-						different new releases or old golds...
-					</p>
-					<h3>Wait, I'm going too off-track. Let's start over.</h3>
-					<hr />
-					<p>
-						I'm Ishman, a passionate developer and keyboard enthusiast who loves
-						creating innovative solutions and tinkering with technology.
-						Currently, I'm working on <strong>ezcalc</strong> and diving deep
-						into <strong>PCB Design</strong> - always learning something new!
-					</p>
-					<p>
-						I work with a wide range of technologies from low-level programming
-						(C/C++) to modern web development (JavaScript/TypeScript, React,
-						Svelte), mobile development (Flutter/Dart), and even hardware
-						projects with Raspberry Pi.
-					</p>
-					<p>
-						When I'm not coding, you'll find me gaming, designing mechanical
-						keyboards, experimenting in the kitchen (I make killer food! 🍳), or
-						exploring 3D modeling (though I could definitely use some help there
-						😭). I believe in clean, maintainable code and creating intuitive
-						user experiences.
-					</p>
-				</div>
-				<div class="skills">
-					<h3>Skills & Technologies</h3>
-					<div class="skill-grid">
-						<div class="skill-item">JavaScript</div>
-						<div class="skill-item">TypeScript</div>
-						<div class="skill-item">React/Svelte</div>
-						<div class="skill-item">Node.js</div>
-						<div class="skill-item">Python</div>
-						<div class="skill-item">C / C++ / C#</div>
-						<div class="skill-item">Dart</div>
-						<div class="skill-item">HTML5</div>
-						<div class="skill-item">CSS3</div>
-						<div class="skill-item">Bash Script</div>
-						<div class="skill-item">AWS</div>
-						<div class="skill-item">Firebase</div>
-						<div class="skill-item">Cloudflare</div>
-						<div class="skill-item">Netlify</div>
-						<div class="skill-item">Vercel</div>
-						<div class="skill-item">MySQL</div>
-						<div class="skill-item">Docker</div>
-						<div class="skill-item">Git</div>
-						<div class="skill-item">GitHub</div>
-						<div class="skill-item">Raspberry Pi</div>
-						<div class="skill-item">Adobe Photoshop</div>
-						<div class="skill-item">Adobe Illustrator</div>
-						<div class="skill-item">Adobe Premiere Pro</div>
-						<div class="skill-item">Figma</div>
-						<div class="skill-item">Blender</div>
-						<div class="skill-item">Canva</div>
-						<div class="skill-item">GIMP</div>
-						<div class="skill-item">Unity</div>
-						<div class="skill-item">Markdown</div>
-						<div class="skill-item">TOR</div>
-						<div class="skill-item">PlayStation Network</div>
-						<div class="skill-item">NVIDIA</div>
-						<div class="skill-item">Steam</div>
-						<div class="skill-item">Ubisoft</div>
-						<div class="skill-item">PCB Design</div>
-						<div class="skill-item">3D Modeling</div>
+			<div class="section-content">
+				<h2 class="section-title">About Me</h2>
+				<div class="about-content">
+					<div class="about-text">
+						<p>
+							I'm Ishman, a passionate developer and keyboard enthusiast who
+							loves creating innovative solutions and tinkering with technology.
+							Currently, I'm working on <strong>ezcalc</strong> (A simplistic
+							scientific calculator) and diving deep into
+							<strong>PCB Design</strong> - always learning something new!
+						</p>
+						<p>
+							I work with a wide range of technologies from low-level
+							programming (C/C++) to modern web development
+							(JavaScript/TypeScript, React, Svelte), mobile development
+							(Flutter/Dart), and even hardware projects with Raspberry Pi.
+						</p>
+						<p>
+							When I'm not coding, you'll find me gaming, designing mechanical
+							keyboards, experimenting in the kitchen (I make killer food! 🍳),
+							or exploring 3D modeling (though I could definitely use some help
+							there 😭). I believe in clean, maintainable code and creating
+							intuitive user experiences.
+						</p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</section>
 
-	<section id="projects" class="projects">
+	<!-- Scroll 2: Building the Foundation -->
+	<section class="skills scroll-section">
 		<div class="container">
-			<h2>Some Things I Work On</h2>
-			<div class="project-grid">
-				<div class="project-card">
-					<div class="project-image">
-						<div class="placeholder-image">🥩</div>
-					</div>
-					<div class="project-content">
-						<h3>BBQR (Barbequer)</h3>
-						<p>
-							A BBQ-themed terminal QR code generator that "grills your data to
-							perfection"! Features cross-platform WiFi QR codes, file
-							upload/sharing, and multi-threaded operations.
-						</p>
-						<div class="project-tech">
-							<span class="tech-tag">Python</span>
-							<span class="tech-tag">QR Codes</span>
-							<span class="tech-tag">CLI</span>
+			<div class="section-content">
+				<h2 class="section-title">Building the Foundation</h2>
+				<p class="section-subtitle">Technologies I've mastered on my journey</p>
+				<div class="skills-constellation">
+					<div class="skill-group frontend">
+						<h3>Frontend</h3>
+						<div class="skill-items">
+							<div class="skill-item" data-delay="0">JavaScript</div>
+							<div class="skill-item" data-delay="100">TypeScript</div>
+							<div class="skill-item" data-delay="200">React</div>
+							<div class="skill-item" data-delay="300">Svelte</div>
+							<div class="skill-item" data-delay="400">HTML5</div>
+							<div class="skill-item" data-delay="500">CSS3</div>
 						</div>
 					</div>
-				</div>
-
-				<div class="project-card">
-					<div class="project-image">
-						<div class="placeholder-image">⌨️</div>
-					</div>
-					<div class="project-content">
-						<h3>TerminalWriter</h3>
-						<p>
-							A terminal-based text editor with modern features like syntax
-							highlighting, multiple tabs, and customizable themes. Designed for
-							developers who prefer working in the terminal environment with
-							efficient keyboard shortcuts.
-						</p>
-						<div class="project-tech">
-							<span class="tech-tag">Python</span>
-							<span class="tech-tag">Terminal UI</span>
-							<span class="tech-tag">Text Editor</span>
+					<div class="skill-group backend">
+						<h3>Backend</h3>
+						<div class="skill-items">
+							<div class="skill-item" data-delay="600">Node.js</div>
+							<div class="skill-item" data-delay="700">Python</div>
+							<div class="skill-item" data-delay="800">C/C++</div>
+							<div class="skill-item" data-delay="900">MySQL</div>
+							<div class="skill-item" data-delay="1000">Docker</div>
 						</div>
 					</div>
-				</div>
-
-				<div class="project-card">
-					<div class="project-image">
-						<div class="placeholder-image">⭐</div>
-					</div>
-					<div class="project-content">
-						<h3>Life Points</h3>
-						<p>
-							A Flutter mobile app that gamifies productivity by rewarding
-							points for task completion. Features offline-first design,
-							deadline tracking, and penalty systems for overdue tasks.
-						</p>
-						<div class="project-tech">
-							<span class="tech-tag">Flutter</span>
-							<span class="tech-tag">Dart</span>
-							<span class="tech-tag">Mobile</span>
+					<div class="skill-group cloud">
+						<h3>Cloud & Tools</h3>
+						<div class="skill-items">
+							<div class="skill-item" data-delay="1100">AWS</div>
+							<div class="skill-item" data-delay="1200">Firebase</div>
+							<div class="skill-item" data-delay="1300">Git</div>
+							<div class="skill-item" data-delay="1400">GitHub</div>
+							<div class="skill-item" data-delay="1500">Cloudflare</div>
+							<div class="skill-item" data-delay="1600">Raspberry Pi</div>
 						</div>
 					</div>
 				</div>
@@ -163,298 +181,544 @@
 		</div>
 	</section>
 
-	<section class="contact">
+	<!-- Scroll 3: Putting Skills into Practice -->
+	<section class="projects scroll-section">
 		<div class="container">
-			<h2>Let's Connect & Create Something Amazing Together!</h2>
-			<p>
-				Whether you have a project in mind, want to collaborate, or just want to
-				chat about tech and keyboards, I'd love to hear from you!
-			</p>
-			<div class="contact-links">
-				<a href="mailto:ishmansingh24@gmail.com" class="contact-link">
-					<span class="icon">📧</span>
-					Email
-				</a>
-				<a
-					href="https://github.com/foglomon"
-					class="contact-link"
-					target="_blank"
-					rel="noopener"
-				>
-					<img src="/assets/images/github.png" alt="GitHub" class="icon-img" />
-					GitHub
-				</a>
+			<div class="section-content">
+				<h2 class="section-title">Putting Skills into Practice</h2>
+				<p class="section-subtitle">Featured work that defines my journey</p>
+
+				<div class="project-showcase">
+					<a
+						href="https://github.com/foglomon/bbqr"
+						class="project-link"
+						target="_blank"
+						rel="noopener"
+					>
+						<div class="project-item">
+							<div class="project-visual">
+								<div class="project-icon">🥩</div>
+								<div class="project-bg"></div>
+							</div>
+							<div class="project-details">
+								<h3>BBQR (Barbequer)</h3>
+								<p>
+									A BBQ-themed terminal QR code generator that "grills your data
+									to perfection"! Features cross-platform WiFi QR codes, file
+									upload/sharing, and multi-threaded operations.
+								</p>
+								<div class="project-tech">
+									<span>Python</span>
+									<span>QR Codes</span>
+									<span>CLI</span>
+								</div>
+							</div>
+						</div>
+					</a>
+
+					<a
+						href="https://github.com/foglomon/TerminalWriter"
+						class="project-link"
+						target="_blank"
+						rel="noopener"
+					>
+						<div class="project-item">
+							<div class="project-visual">
+								<div class="project-icon">⌨️</div>
+								<div class="project-bg"></div>
+							</div>
+							<div class="project-details">
+								<h3>TerminalWriter</h3>
+								<p>
+									A terminal-based text editor with modern features like syntax
+									highlighting, multiple tabs, and customizable themes. Built
+									for developers who live in the terminal.
+								</p>
+								<div class="project-tech">
+									<span>Python</span>
+									<span>Terminal UI</span>
+									<span>Text Editor</span>
+								</div>
+							</div>
+						</div>
+					</a>
+
+					<a
+						href="https://github.com/foglomon/life-points"
+						class="project-link"
+						target="_blank"
+						rel="noopener"
+					>
+						<div class="project-item">
+							<div class="project-visual">
+								<img
+									src="/assets/images/lifepoints.png"
+									alt="Life Points"
+									class="project-full-image"
+								/>
+							</div>
+							<div class="project-details">
+								<h3>Life Points</h3>
+								<p>
+									A Flutter mobile app that gamifies productivity by rewarding
+									points for task completion. Features offline-first design,
+									deadline tracking, and penalty systems.
+								</p>
+								<div class="project-tech">
+									<span>Flutter</span>
+									<span>Dart</span>
+									<span>Mobile</span>
+								</div>
+							</div>
+						</div>
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Scroll 4: The Call to Action -->
+	<section class="contact scroll-section">
+		<div class="container">
+			<div class="section-content">
+				<h2 class="section-title final-title">
+					Let's create something together
+				</h2>
+				<p class="contact-description">
+					Whether you have a project in mind, want to collaborate, or just want
+					to chat about tech and keyboards, I'd love to hear from you.
+				</p>
+				<div class="contact-grid">
+					<a href="mailto:ishmansingh24@gmail.com" class="contact-card">
+						<div class="contact-icon">📧</div>
+						<h3>Email</h3>
+						<p>ishmansingh24@gmail.com</p>
+					</a>
+					<a
+						href="https://github.com/foglomon"
+						class="contact-card"
+						target="_blank"
+						rel="noopener"
+					>
+						<div class="contact-icon">
+							<img
+								src="/assets/images/github.png"
+								alt="GitHub"
+								class="github-icon"
+							/>
+						</div>
+						<h3>GitHub</h3>
+						<p>@foglomon</p>
+					</a>
+				</div>
 			</div>
 		</div>
 	</section>
 
 	<footer class="footer">
 		<div class="container">
-			<p>&copy; 2025 Ishman Singh. Built with &hearts;.</p>
+			<p>&copy; 2025 Ishman Singh. Crafted with &hearts; and passion.</p>
 			<a href="/" class="back-link">← Back to Keyboard</a>
 		</div>
 	</footer>
 </div>
 
 <style>
+	:global(body) {
+		margin: 0;
+		padding: 0;
+		background: #0a0a0a;
+		color: #ffffff;
+		overflow-x: hidden;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	:global(body::-webkit-scrollbar) {
+		display: none;
+	}
+
 	.portfolio-container {
 		margin: 0;
 		padding: 0;
 		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
 			Ubuntu, Cantarell, sans-serif;
 		line-height: 1.6;
-		color: #333;
+		background: linear-gradient(
+			180deg,
+			#0a0a0a 0%,
+			#1a1a2e 15%,
+			#16213e 25%,
+			#1a1a2e 35%,
+			#2d1b69 45%,
+			#16213e 55%,
+			#2d1b69 65%,
+			#1a1a2e 75%,
+			#16213e 85%,
+			#0a0a0a 95%,
+			#000000 100%
+		);
+		color: #ffffff;
 		opacity: 0;
-		transform: translateY(20px);
-		transition: all 0.8s ease;
+		transition: opacity 1s ease;
+		position: relative;
 		min-height: 100vh;
-		overflow-x: hidden;
-	}
-
-	/* Hide scrollbar but allow scrolling */
-	:global(html),
-	:global(body) {
-		scrollbar-width: none; /* Firefox */
-		-ms-overflow-style: none; /* Internet Explorer 10+ */
-	}
-
-	:global(html::-webkit-scrollbar),
-	:global(body::-webkit-scrollbar) {
-		display: none; /* WebKit */
 	}
 
 	.portfolio-container.mounted {
 		opacity: 1;
-		transform: translateY(0);
+	}
+
+	/* Journey Path */
+	.journey-path {
+		position: fixed;
+		left: 2rem;
+		top: 0;
+		height: 100vh;
+		z-index: 10;
+		pointer-events: none;
+	}
+
+	.journey-path svg {
+		height: 100%;
+	}
+
+	.journey-path path {
+		stroke-dasharray: 2000;
+		stroke-dashoffset: 2000;
+		transition: stroke-dashoffset 0.3s ease-out;
+	}
+
+	.journey-marker {
+		position: absolute;
+		left: 50%;
+		top: 0;
+		width: 8px;
+		height: 8px;
+		background: #667eea;
+		border-radius: 50%;
+		transform: translateX(-50%);
+		transition: top 0.3s ease-out;
+		box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 	}
 
 	.container {
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: 0 20px;
+		padding: 0 4rem;
 	}
 
-	.hero {
-		background: url(assets/images/hero-bg.jpg);
-		background-size: cover;
-		background-position: center;
-		background-repeat: no-repeat;
-		color: white;
+	/* Scroll Sections */
+	.scroll-section {
 		min-height: 100vh;
 		display: flex;
 		align-items: center;
+		opacity: 0;
+		transform: translateY(50px);
+		transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+		position: relative;
+		padding: 5vh 0;
+	}
+
+	:global(.scroll-section.visible) {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.section-content {
+		width: 100%;
+		max-width: 800px;
+		margin: 0 auto;
+		text-align: center;
+	}
+
+	.section-title {
+		font-size: 3rem;
+		font-weight: 700;
+		margin-bottom: 2rem;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.section-subtitle {
+		font-size: 1.2rem;
+		color: #888;
+		margin-bottom: 3rem;
+	}
+
+	/* Hero Section */
+	.hero {
+		background: transparent;
+		position: relative;
 		justify-content: center;
 		text-align: center;
-		position: relative;
+		z-index: 2;
 	}
 
 	.hero-content {
-		width: 100%;
-		max-width: 800px;
-		padding: 0 20px;
+		transition:
+			opacity 0.1s ease-out,
+			transform 0.1s ease-out;
 	}
 
-	.image-disclaimer {
+	.hero-title {
+		font-size: 4.5rem;
+		font-weight: 800;
+		margin-bottom: 1.5rem;
+		color: #ffffff;
+		text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+		animation: glow 2s ease-in-out infinite alternate;
+	}
+
+	.hero-subtitle {
+		font-size: 1.8rem;
+		color: #ccc;
+		margin-bottom: 4rem;
+		font-weight: 300;
+	}
+
+	@keyframes glow {
+		from {
+			text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+		}
+		to {
+			text-shadow:
+				0 0 50px rgba(102, 126, 234, 0.5),
+				0 0 70px rgba(118, 75, 162, 0.3);
+		}
+	}
+
+	.scroll-indicator {
 		position: absolute;
-		bottom: 20px;
-		right: 20px;
-		font-size: 0.75rem;
-		opacity: 0.7;
-		background: rgba(0, 0, 0, 0.3);
-		padding: 4px 8px;
-		border-radius: 4px;
-		backdrop-filter: blur(4px);
+		bottom: 2rem;
+		left: 50%;
+		transform: translateX(-50%);
+		animation: bounce 2s infinite;
 	}
 
-	.name {
-		font-size: 4rem;
-		font-weight: 700;
-		margin: 0 0 1rem 0;
-		color: #fff;
-		text-shadow:
-			2px 2px 8px rgba(0, 0, 0, 0.8),
-			0 0 20px rgba(0, 0, 0, 0.5);
-		filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+	.scroll-arrow {
+		width: 2px;
+		height: 30px;
+		background: linear-gradient(to bottom, transparent, #667eea);
+		position: relative;
 	}
 
-	.tagline {
-		font-size: 1.5rem;
-		margin: 0 0 2rem 0;
-		color: #fff;
-		text-shadow:
-			1px 1px 6px rgba(0, 0, 0, 0.8),
-			0 0 15px rgba(0, 0, 0, 0.4);
+	.scroll-arrow::after {
+		content: "";
+		position: absolute;
+		bottom: 0;
+		left: -4px;
+		width: 0;
+		height: 0;
+		border-left: 5px solid transparent;
+		border-right: 5px solid transparent;
+		border-top: 8px solid #667eea;
 	}
 
-	.hero-actions {
-		display: flex;
-		gap: 1rem;
-		justify-content: center;
-		flex-wrap: wrap;
+	@keyframes bounce {
+		0%,
+		20%,
+		50%,
+		80%,
+		100% {
+			transform: translateX(-50%) translateY(0);
+		}
+		40% {
+			transform: translateX(-50%) translateY(-10px);
+		}
+		60% {
+			transform: translateX(-50%) translateY(-5px);
+		}
 	}
 
-	.btn {
-		padding: 12px 24px;
-		border-radius: 6px;
-		text-decoration: none;
-		font-weight: 500;
-		transition: all 0.3s ease;
-		display: inline-block;
-		font-family: inherit;
-		border: none;
-		cursor: pointer;
-		user-select: none;
-	}
-
-	.btn.primary {
-		background: rgba(255, 255, 255, 0.95);
-		color: #2c3e50;
-		font-weight: 600;
-		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-		backdrop-filter: blur(10px);
-		border: 2px solid rgba(255, 255, 255, 0.8);
-	}
-
-	.btn.primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-		background: rgba(255, 255, 255, 1);
-	}
-
-	.btn.secondary {
-		background: rgba(255, 255, 255, 0.15);
-		color: #fff;
-		border: 2px solid rgba(255, 255, 255, 0.8);
-		font-weight: 600;
-		text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-		backdrop-filter: blur(10px);
-	}
-
-	.btn.secondary:hover {
-		background: rgba(255, 255, 255, 0.95);
-		color: #2c3e50;
-		text-shadow: none;
-		transform: translateY(-2px);
-		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-	}
-
+	/* About Section */
 	.about {
-		padding: 80px 0;
-		background: #f8f9fa;
-	}
-
-	.about h2 {
-		text-align: center;
-		font-size: 2.5rem;
-		margin-bottom: 3rem;
-		color: #2c3e50;
+		background: transparent;
+		z-index: 1;
 	}
 
 	.about-content {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 4rem;
-		align-items: start;
+		max-width: 800px;
+		margin: 0 auto;
+		text-align: left;
 	}
 
 	.about-text p {
-		font-size: 1.1rem;
+		font-size: 1.2rem;
 		margin-bottom: 1.5rem;
-		color: #555;
+		color: #ddd;
+		line-height: 1.8;
 	}
 
-	.skills h3 {
-		margin-bottom: 1.5rem;
-		color: #2c3e50;
+	.about-text strong {
+		color: #667eea;
+		font-weight: 600;
 	}
 
-	.skill-grid {
+	/* Skills Section */
+	.skills {
+		background: transparent;
+		z-index: 1;
+	}
+
+	.skills-constellation {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-		gap: 0.5rem;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 4rem;
+		text-align: left;
+	}
+
+	.skill-group h3 {
+		font-size: 1.5rem;
+		margin-bottom: 2rem;
+		color: #667eea;
+		text-align: center;
+	}
+
+	.skill-items {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 	}
 
 	.skill-item {
-		background: #667eea;
-		color: white;
-		padding: 8px 12px;
-		border-radius: 20px;
-		text-align: center;
-		font-size: 0.9rem;
+		background: rgba(102, 126, 234, 0.1);
+		border: 1px solid rgba(102, 126, 234, 0.3);
+		padding: 1rem 1.5rem;
+		border-radius: 10px;
 		font-weight: 500;
-	}
-
-	.projects {
-		padding: 80px 0;
-		background: #fff;
-	}
-
-	.projects h2 {
-		text-align: center;
-		font-size: 2.5rem;
-		margin-bottom: 3rem;
-		color: #2c3e50;
-	}
-
-	.project-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-		gap: 2rem;
-	}
-
-	.project-card {
-		background: #fff;
-		border-radius: 12px;
+		transform: translateX(-50px);
+		opacity: 0;
+		transition: all 0.6s ease;
+		position: relative;
 		overflow: hidden;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-		transition:
-			transform 0.3s ease,
-			box-shadow 0.3s ease;
 	}
 
-	.project-card:hover {
-		transform: translateY(-5px);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+	.skill-item::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(255, 255, 255, 0.1),
+			transparent
+		);
+		transition: left 0.5s ease;
 	}
 
-	.project-image {
-		height: 200px;
-		background: linear-gradient(135deg, #667eea, #764ba2);
+	.skill-item:hover::before {
+		left: 100%;
+	}
+
+	:global(.skills.visible .skill-item) {
+		transform: translateX(0);
+		opacity: 1;
+		animation: slideInRight 0.6s ease forwards;
+	}
+
+	@keyframes slideInRight {
+		from {
+			transform: translateX(-50px);
+			opacity: 0;
+		}
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
+
+	/* Projects Section */
+	.projects {
+		background: transparent;
+		z-index: 1;
+	}
+
+	.project-showcase {
+		display: flex;
+		flex-direction: column;
+		gap: 6rem;
+	}
+
+	.project-item {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4rem;
+		align-items: center;
+	}
+
+	.project-item:nth-child(even),
+	.project-link:nth-child(even) .project-item {
+		direction: rtl;
+	}
+
+	.project-item:nth-child(even) > *,
+	.project-link:nth-child(even) .project-item > * {
+		direction: ltr;
+	}
+
+	.project-visual {
+		position: relative;
+		height: 300px;
+		border-radius: 20px;
+		overflow: hidden;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
-	/* Unique gradients for each project */
-	.project-card:nth-child(1) .project-image {
+	.project-bg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: linear-gradient(135deg, #667eea, #764ba2);
+		opacity: 1;
+	}
+
+	.project-item:nth-child(1) .project-bg,
+	.project-link:nth-child(1) .project-item .project-bg {
 		background: linear-gradient(135deg, #ff6b6b, #ff5722);
 	}
 
-	.project-card:nth-child(2) .project-image {
+	.project-item:nth-child(2) .project-bg,
+	.project-link:nth-child(2) .project-item .project-bg {
 		background: linear-gradient(135deg, #4ecdc4, #26a69a);
 	}
 
-	.project-card:nth-child(3) .project-image {
-		background: linear-gradient(135deg, #feca57, #ff9ff3);
+	.project-item:nth-child(3) .project-bg,
+	.project-link:nth-child(3) .project-item .project-bg {
+		background: transparent;
 	}
 
-	.placeholder-image {
-		font-size: 4rem;
+	.project-icon {
+		font-size: 5rem;
+		position: relative;
+		z-index: 2;
+		filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
 	}
 
-	.project-content {
-		padding: 1.5rem;
+	.project-details {
+		text-align: left;
 	}
 
-	.project-content h3 {
-		margin: 0 0 1rem 0;
-		color: #2c3e50;
-	}
-
-	.project-content p {
-		color: #666;
+	.project-details h3 {
+		font-size: 2rem;
 		margin-bottom: 1rem;
+		color: #ffffff;
+	}
+
+	.project-details p {
+		font-size: 1.1rem;
+		color: #ccc;
+		margin-bottom: 2rem;
+		line-height: 1.6;
 	}
 
 	.project-tech {
@@ -463,97 +727,142 @@
 		gap: 0.5rem;
 	}
 
-	.tech-tag {
-		background: #e9ecef;
-		color: #495057;
-		padding: 4px 8px;
-		border-radius: 12px;
-		font-size: 0.8rem;
+	.project-tech span {
+		background: rgba(102, 126, 234, 0.2);
+		border: 1px solid rgba(102, 126, 234, 0.4);
+		color: #667eea;
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		font-size: 0.9rem;
 		font-weight: 500;
 	}
 
+	/* Project Link - Invisible clickable area */
+	.project-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		transition: all 0.3s ease;
+		cursor: pointer;
+	}
+
+	.project-link:hover {
+		transform: translateY(-5px);
+	}
+
+	.project-link:hover .project-visual {
+		transform: scale(1.05);
+	}
+
+	/* Contact Section */
 	.contact {
-		padding: 80px 0;
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		color: white;
+		background: transparent;
+		position: relative;
+		z-index: 1;
+	}
+
+	.final-title {
+		font-size: 3.5rem;
+		margin-bottom: 2rem;
+		position: relative;
+	}
+
+	.final-title::after {
+		content: "";
+		position: absolute;
+		bottom: -10px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 200px;
+		height: 3px;
+		background: linear-gradient(90deg, #667eea, #764ba2);
+		border-radius: 2px;
+	}
+
+	.contact-description {
+		font-size: 1.3rem;
+		color: #ccc;
+		margin-bottom: 4rem;
+		max-width: 600px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.contact-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 2rem;
+		max-width: 600px;
+		margin: 0 auto;
+	}
+
+	.contact-card {
+		background: rgba(102, 126, 234, 0.1);
+		border: 1px solid rgba(102, 126, 234, 0.3);
+		padding: 2rem;
+		border-radius: 15px;
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.3s ease;
 		text-align: center;
 		position: relative;
 		overflow: hidden;
 	}
 
-	.contact::before {
+	.contact-card::before {
 		content: "";
 		position: absolute;
 		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-		pointer-events: none;
+		left: -100%;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(102, 126, 234, 0.1),
+			transparent
+		);
+		transition: left 0.5s ease;
 	}
 
-	.contact h2 {
+	.contact-card:hover::before {
+		left: 100%;
+	}
+
+	.contact-card:hover {
+		transform: translateY(-5px);
+		border-color: rgba(102, 126, 234, 0.6);
+		box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+	}
+
+	.contact-icon {
 		font-size: 2.5rem;
 		margin-bottom: 1rem;
-		position: relative;
-		z-index: 1;
 	}
 
-	.contact p {
-		font-size: 1.2rem;
-		margin-bottom: 2rem;
-		opacity: 0.9;
-		position: relative;
-		z-index: 1;
-	}
-
-	.contact-links {
-		display: flex;
-		justify-content: center;
-		gap: 2rem;
-		flex-wrap: wrap;
-		position: relative;
-		z-index: 1;
-	}
-
-	.contact-link {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 12px 24px;
-		background: rgba(255, 255, 255, 0.2);
-		color: white;
-		text-decoration: none;
-		border-radius: 6px;
-		transition: all 0.3s ease;
-		font-family: inherit;
-		user-select: none;
-		backdrop-filter: blur(10px);
-		border: 1px solid rgba(255, 255, 255, 0.3);
-	}
-
-	.contact-link:hover {
-		background: rgba(255, 255, 255, 0.9);
-		color: #667eea;
-		transform: translateY(-2px);
-		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-	}
-
-	.icon {
-		font-size: 1.2rem;
-	}
-
-	.icon-img {
-		height: 1.2rem;
-		width: auto;
-		filter: brightness(0) invert(1);
+	.github-icon {
+		width: 3rem;
+		height: 3rem;
 		object-fit: contain;
+		filter: brightness(0) invert(1);
 	}
 
+	.contact-card h3 {
+		font-size: 1.3rem;
+		margin-bottom: 0.5rem;
+		color: #667eea;
+	}
+
+	.contact-card p {
+		color: #ccc;
+		margin: 0;
+	}
+
+	/* Footer */
 	.footer {
-		background: #1a1a1a;
-		color: white;
-		padding: 2rem 0;
+		background: transparent;
+		padding: 3rem 0;
+		border-top: 1px solid #333;
 		text-align: center;
 	}
 
@@ -569,8 +878,7 @@
 		color: #667eea;
 		text-decoration: none;
 		transition: color 0.3s ease;
-		font-family: inherit;
-		user-select: none;
+		font-weight: 500;
 	}
 
 	.back-link:hover {
@@ -578,41 +886,66 @@
 	}
 
 	/* Responsive Design */
-	@media (max-width: 768px) {
-		.name {
-			font-size: 2.5rem;
+	@media (max-width: 1024px) {
+		.container {
+			padding: 0 2rem;
 		}
 
-		.tagline {
-			font-size: 1.2rem;
+		.journey-path {
+			left: 1rem;
+		}
+
+		.skills-constellation {
+			grid-template-columns: 1fr;
+			gap: 3rem;
+		}
+
+		.project-item {
+			grid-template-columns: 1fr;
+			text-align: center;
+		}
+
+		.project-item:nth-child(even),
+		.project-link:nth-child(even) .project-item {
+			direction: ltr;
 		}
 
 		.about-content {
-			grid-template-columns: 1fr;
-			gap: 2rem;
+			text-align: center;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.hero-title {
+			font-size: 3rem;
 		}
 
-		.project-grid {
-			grid-template-columns: 1fr;
+		.hero-subtitle {
+			font-size: 1.3rem;
 		}
 
-		.contact-links {
-			flex-direction: column;
-			align-items: center;
+		.section-title {
+			font-size: 2.5rem;
+		}
+
+		.final-title {
+			font-size: 2.8rem;
+		}
+
+		.contact-grid {
+			grid-template-columns: 1fr;
 		}
 
 		.footer .container {
 			flex-direction: column;
-			text-align: center;
+		}
+
+		.journey-path {
+			display: none;
 		}
 	}
 
 	* {
 		box-sizing: border-box;
-	}
-
-	/* Prevent font loading issues */
-	.portfolio-container * {
-		font-family: inherit;
 	}
 </style>
