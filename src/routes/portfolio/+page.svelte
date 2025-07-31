@@ -112,7 +112,7 @@
 				<div class="about-content">
 					<div class="about-text">
 						<p>
-							I'm Ishman, a passionate developer and keyboard enthusiast who
+							I'm Ishman, a student, developer and keyboard enthusiast who
 							loves creating innovative solutions and tinkering with technology.
 							Currently, I'm working on <strong>ezcalc</strong> (A simplistic
 							scientific calculator) and diving deep into
@@ -317,7 +317,7 @@
 
 	<footer class="footer">
 		<div class="container">
-			<p>&copy; 2025 Ishman Singh. Crafted with &hearts; and passion.</p>
+			<p>&copy; 2025 Ishman Singh. Crafted with &hearts; and code.</p>
 			<a href="/" class="back-link">← Back to Keyboard</a>
 		</div>
 	</footer>
