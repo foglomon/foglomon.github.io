@@ -289,10 +289,10 @@
 					to chat about tech and keyboards, I'd love to hear from you.
 				</p>
 				<div class="contact-grid">
-					<a href="mailto:ishmansingh24@gmail.com" class="contact-card">
+					<a href="mailto:ishmansingh@duck.com" class="contact-card">
 						<div class="contact-icon">📧</div>
 						<h3>Email</h3>
-						<p>ishmansingh24@gmail.com</p>
+						<p>ishmansingh@duck.com</p>
 					</a>
 					<a
 						href="https://github.com/foglomon"
